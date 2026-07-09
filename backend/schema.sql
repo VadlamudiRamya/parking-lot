@@ -1,16 +1,14 @@
--- Parking Lot System — MySQL Schema
+-- Parking Lot System — PostgreSQL Schema
 -- Run this file after creating your database:
---   CREATE DATABASE parking_db;
---   USE parking_db;
---   SOURCE schema.sql;
+--   \i schema.sql
 
 CREATE TABLE IF NOT EXISTS tickets (
-  id             INT AUTO_INCREMENT PRIMARY KEY,
+  id             SERIAL PRIMARY KEY,
   ticket_id      VARCHAR(20) UNIQUE NOT NULL,
   vehicle_number VARCHAR(20) NOT NULL,
-  vehicle_type   ENUM('bike','car','truck') NOT NULL,
-  entry_time     DATETIME NOT NULL,
-  exit_time      DATETIME DEFAULT NULL,
+  vehicle_type   VARCHAR(10) NOT NULL CHECK (vehicle_type IN ('bike','car','truck')),
+  entry_time     TIMESTAMP NOT NULL,
+  exit_time      TIMESTAMP DEFAULT NULL,
   amount         DECIMAL(6,2) DEFAULT NULL,
-  status         ENUM('parked','exited') NOT NULL DEFAULT 'parked'
+  status         VARCHAR(10) NOT NULL DEFAULT 'parked' CHECK (status IN ('parked','exited'))
 );
