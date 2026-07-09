@@ -28,10 +28,10 @@ function makeTicketId(id) {
 /** Count how many slots of a type are currently occupied. */
 async function countOccupied(vehicleType) {
   const [rows] = await pool.query(
-    `SELECT COUNT(*) AS occupied FROM tickets WHERE vehicle_type = $1 AND status = 'parked'`,
+    'SELECT COUNT(*) AS occupied FROM tickets WHERE vehicle_type = ? AND status = "parked"',
     [vehicleType]
   );
-  return Number(rows[0].occupied);
+  return rows[0].occupied;
 }
 
 // ── GET /api/slots ───────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ router.post('/park', async (req, res) => {
   try {
     // ── Duplicate vehicle check ─────────────────────────────────────────
     const [existing] = await pool.query(
-      `SELECT id FROM tickets WHERE vehicle_number = $1 AND status = 'parked'`,
+      'SELECT id FROM tickets WHERE vehicle_number = ? AND status = "parked"',
       [normalizedNumber]
     );
     if (existing.length > 0) {
@@ -113,15 +113,15 @@ router.post('/park', async (req, res) => {
     const entryTime = new Date();
     const [insertResult] = await pool.query(
       `INSERT INTO tickets (ticket_id, vehicle_number, vehicle_type, entry_time, status)
-       VALUES ($1, $2, $3, $4, 'parked') RETURNING id`,
+       VALUES (?, ?, ?, ?, 'parked')`,
       ['PLACEHOLDER', normalizedNumber, normalizedType, entryTime]
     );
 
-    const newId = insertResult[0].id;
-    const ticketId = makeTicketId(newId);
-    await pool.query('UPDATE tickets SET ticket_id = $1 WHERE id = $2', [
+    // Update ticket_id now that we have the auto-increment id
+    const ticketId = makeTicketId(insertResult.insertId);
+    await pool.query('UPDATE tickets SET ticket_id = ? WHERE id = ?', [
       ticketId,
-      newId,
+      insertResult.insertId,
     ]);
 
     return res.status(201).json({
@@ -155,10 +155,10 @@ router.post('/exit', async (req, res) => {
     // Find the parked record matching the given identifier
     let query, param;
     if (ticketId) {
-      query = `SELECT * FROM tickets WHERE ticket_id = $1 AND status = 'parked'`;
+      query = 'SELECT * FROM tickets WHERE ticket_id = ? AND status = "parked"';
       param  = String(ticketId).toUpperCase().trim();
     } else {
-      query = `SELECT * FROM tickets WHERE vehicle_number = $1 AND status = 'parked'`;
+      query = 'SELECT * FROM tickets WHERE vehicle_number = ? AND status = "parked"';
       param  = String(vehicleNumber).toUpperCase().trim();
     }
 
@@ -176,7 +176,7 @@ router.post('/exit', async (req, res) => {
 
     // Persist exit data
     await pool.query(
-      `UPDATE tickets SET exit_time = $1, amount = $2, status = 'exited' WHERE id = $3`,
+      'UPDATE tickets SET exit_time = ?, amount = ?, status = "exited" WHERE id = ?',
       [exitTime, amount, record.id]
     );
 

@@ -1,24 +1,17 @@
-databases:
-  - name: parking-lot-db
-    plan: free
-    databaseName: parking_db
-    user: parking_user
-
 services:
-  - type: web
+  - type: web_service
     name: parking-lot
-    runtime: node
+    env: node
     plan: free
     region: oregon
     branch: main
-    rootDir: backend
+    root: backend
     buildCommand: npm install && npm run build
     startCommand: npm start
     autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: parking-lot-db
-          property: connectionString
-      - key: NODE_ENV
-        value: production
+      - key: DB_HOST
+      - key: DB_USER
+      - key: DB_PASSWORD
+      - key: DB_NAME
+      - key: DB_PORT

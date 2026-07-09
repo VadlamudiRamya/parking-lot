@@ -1,16 +1,16 @@
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+const pool = mysql.createPool({
+  host:     process.env.DB_HOST     || 'localhost',
+  user:     process.env.DB_USER     || 'root',
+  password: process.env.DB_PASSWORD || '',
+  database: process.env.DB_NAME     || 'parking_db',
+  port:     process.env.DB_PORT     || 3306,
+  ssl:      process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
 });
-
-// Helper to match mysql2's [rows] return style so route code stays clean
-const originalQuery = pool.query.bind(pool);
-pool.query = async (...args) => {
-  const result = await originalQuery(...args);
-  return [result.rows, result];
-};
 
 module.exports = pool;

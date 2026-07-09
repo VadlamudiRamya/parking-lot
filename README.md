@@ -1,6 +1,6 @@
 # 🚗 TaxSafar Parking Lot System
 
-A full-stack parking lot management system built with **Node.js + Express**, **React**, and **PostgreSQL**.
+A full-stack parking lot management system built with **Node.js + Express**, **React**, and **MySQL**.
 
 ---
 
@@ -35,16 +35,16 @@ A full-stack parking lot management system built with **Node.js + Express**, **R
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Node.js, Express, pg, dotenv, cors |
+| Backend | Node.js, Express, mysql2, dotenv, cors |
 | Frontend | React, Vite |
-| Database | PostgreSQL |
+| Database | MySQL |
 
 ---
 
 ## Prerequisites
 
 - Node.js 18+ and npm
-- PostgreSQL 14+ (for local development)
+- MySQL 8.0+
 
 ---
 
@@ -56,11 +56,21 @@ A full-stack parking lot management system built with **Node.js + Express**, **R
 cd parking_lot
 ```
 
-### 2. Database setup (local)
+### 2. Database setup
+
+Open MySQL shell and run:
+
+```sql
+CREATE DATABASE parking_db;
+USE parking_db;
+SOURCE backend/schema.sql;
+```
+
+Or using the MySQL CLI:
 
 ```bash
-createdb parking_db
-psql parking_db < backend/schema.sql
+mysql -u root -p -e "CREATE DATABASE parking_db;"
+mysql -u root -p parking_db < backend/schema.sql
 ```
 
 ### 3. Configure environment variables
@@ -70,10 +80,13 @@ cd backend
 copy .env.example .env
 ```
 
-Edit `.env` with your PostgreSQL connection string:
+Edit `.env` with your MySQL credentials:
 
 ```
-DATABASE_URL=postgresql://postgres:your_password@localhost:5432/parking_db
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_NAME=parking_db
 PORT=5000
 ```
 
@@ -106,19 +119,23 @@ Frontend runs on **http://localhost:3000** and proxies all `/api/*` calls to por
 
 ## Deploying on Render
 
-This app deploys as a **Render Blueprint** — one click provisions both the web service and a free PostgreSQL database.
+This app can be deployed as a single Render web service from the `backend/` folder. The backend serves the React production build from `frontend/dist`.
 
-### One-Click Deploy
+1. Create a new Render web service and connect your GitHub repository.
+2. Use the following service settings:
+   - Environment: `Node`
+   - Root directory: `backend`
+   - Build command: `npm install && npm run build`
+   - Start command: `npm start`
+3. Configure Render environment variables for your MySQL database:
+   - `DB_HOST`
+   - `DB_USER`
+   - `DB_PASSWORD`
+   - `DB_NAME`
+   - `DB_PORT`
+4. Render will provide `PORT` automatically.
 
-1. Push this repo to GitHub.
-2. Go to **https://dashboard.render.com**
-3. Click **New → Blueprint** and select your GitHub repo.
-4. Render auto-detects `render.yaml` and provisions:
-   - A **free PostgreSQL database** (`parking-lot-db`)
-   - A **free web service** (`parking-lot`) with `DATABASE_URL` wired automatically
-5. Click **Apply** — done! The database table is created automatically during the build step.
-
-> No external MySQL needed. Render provisions everything from the `render.yaml`.
+> Note: Render does not offer a managed MySQL database. Use an external MySQL server (ClearDB, PlanetScale, AWS RDS, etc.) and point the app at it with the environment variables above.
 
 ---
 
@@ -180,16 +197,14 @@ This app deploys as a **Render Blueprint** — one click provisions both the web
 
 ```
 parking_lot/
-├── render.yaml               # Render Blueprint — provisions DB + service
 ├── backend/
-│   ├── .env.example           # Copy to .env and fill credentials
+│   ├── .env.example        # Copy to .env and fill credentials
 │   ├── package.json
-│   ├── schema.sql             # PostgreSQL table definition
-│   ├── init-db.js             # Auto-creates table on deploy
-│   ├── server.js              # Express entry point
-│   ├── db.js                  # PostgreSQL connection pool
+│   ├── schema.sql          # MySQL table definition
+│   ├── server.js           # Express entry point
+│   ├── db.js               # MySQL connection pool
 │   └── routes/
-│       └── api.js             # All 4 API endpoints
+│       └── api.js          # All 4 API endpoints
 └── frontend/
     ├── package.json
     ├── vite.config.js
