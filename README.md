@@ -117,6 +117,26 @@ npm run dev
 
 Frontend runs on **http://localhost:3000** and proxies all `/api/*` calls to port 5000.
 
+## Deploying on Render
+
+This app can be deployed as a single Render web service from the `backend/` folder. The backend serves the React production build from `frontend/dist`.
+
+1. Create a new Render web service and connect your GitHub repository.
+2. Use the following service settings:
+   - Environment: `Node`
+   - Root directory: `backend`
+   - Build command: `npm install && npm run build`
+   - Start command: `npm start`
+3. Configure Render environment variables for your MySQL database:
+   - `DB_HOST`
+   - `DB_USER`
+   - `DB_PASSWORD`
+   - `DB_NAME`
+   - `DB_PORT`
+4. Render will provide `PORT` automatically.
+
+> Note: Render does not offer a managed MySQL database. Use an external MySQL server (ClearDB, PlanetScale, AWS RDS, etc.) and point the app at it with the environment variables above.
+
 ---
 
 ## API Reference
